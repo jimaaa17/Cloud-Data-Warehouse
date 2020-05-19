@@ -10,7 +10,6 @@ LOG_DATA = config.get("S3","LOG_DATA")
 LOG_PATH = config.get("S3", "LOG_JSONPATH")
 SONG_DATA = config.get("S3", "SONG_DATA")
 IAM_ROLE = config.get("IAM_ROLE","ARN")
-
 # DROP TABLES
 
 staging_events_table_drop = "DROP TABLE IF EXISTS staging_events"
@@ -123,26 +122,22 @@ weekday       INTEGER
 """)
 
 # STAGING TABLES
-
 staging_events_copy = ("""
-    COPY staging_events FROM {}
-    CREDENTIALS 'aws_iam_role={}'
-    COMPUPDATE OFF region 'us-west-2'
-    TIMEFORMAT as 'epochmillisecs'
-    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
-    FORMAT AS JSON {};
+   COPY staging_events FROM {}
+   IAM '{}'
+   COMPUPDATE OFF region 'us-west-2'
+   TIMEFORMAT as 'epochmillisecs'
+   TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
+   FORMAT AS JSON {};
 """).format(LOG_DATA, IAM_ROLE, LOG_PATH)
 
 staging_songs_copy = ("""
     COPY staging_songs FROM {}
-    CREDENTIALS 'aws_iam_role={}'
+    IAM '{}'
     COMPUPDATE OFF region 'us-west-2'
+    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
     FORMAT AS JSON 'auto' 
-    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL;
-""").format(SONG_DATA, IAM_ROLE)
-
-
-
+    ;""").format(SONG_DATA,IAM_ROLE)
 # FINAL TABLES
 
 songplay_table_insert = ("""
@@ -183,8 +178,7 @@ WHERE song_id IS NOT NULL;
 
 artist_table_insert = ("""
 INSERT INTO dim_artist(artist_id, name, location, latitude, longitude)
-SELECT DISTINCT artist_id as artist_id,
-                artist_name as name,
+SELECT DISTINCT artist_id as artist_id,artist_name as name,
                 artist_location as location,
                 artist_latitude as latitude,
                 artist_longitude as longitude
