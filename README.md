@@ -65,10 +65,11 @@ The project template includes four files:
        `$ python create_cluster.py`
 
 4. Run the *create_tables* script to setup the staging schema and analytical tables.
-        `$ python create_tables.py`
+       `$ python create_tables.py`
 5. Run the *etl* scrip to extract data from file stored in S3, stage it at Redshift and store the data in dimensional tables.
-            `$ python etl.py`
-6. Run the *analytics* scrip to check the count of data into dimensional table or try using AWS Redshift to check count upon run queries for analytical table.
+        `$ python etl.py`
+6. Run the *analytics* script to check the count of data into dimensional table or try using AWS Redshift to check count upon run queries for analytical table.
+       '$ analytics.py'
 
   ## Queries and Results
 
