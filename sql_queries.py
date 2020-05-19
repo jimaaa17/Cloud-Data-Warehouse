@@ -124,7 +124,11 @@ weekday       INTEGER
 # STAGING TABLES
 staging_events_copy = ("""
    COPY staging_events FROM {}
+<<<<<<< HEAD
    CREDENTIALS 'aws_iam_role={}'
+=======
+   IAM '{}'
+>>>>>>> bb036007460ec03ab994303bd4d590f37e4da6aa
    COMPUPDATE OFF region 'us-west-2'
    TIMEFORMAT as 'epochmillisecs'
    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
@@ -133,11 +137,17 @@ staging_events_copy = ("""
 
 staging_songs_copy = ("""
     COPY staging_songs FROM {}
-    CREDENTIALS 'aws_iam_role={}'
+    IAM '{}'
     COMPUPDATE OFF region 'us-west-2'
+<<<<<<< HEAD
     TIMEFORMAT as 'epochmillisecs'
     TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
     FORMAT AS JSON 'auto' ;""").format(SONG_DATA,IAM_ROLE)
+=======
+    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
+    FORMAT AS JSON 'auto' 
+    ;""").format(SONG_DATA,IAM_ROLE)
+>>>>>>> bb036007460ec03ab994303bd4d590f37e4da6aa
 # FINAL TABLES
 
 songplay_table_insert = ("""
