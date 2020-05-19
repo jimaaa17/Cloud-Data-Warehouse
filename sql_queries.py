@@ -10,7 +10,6 @@ LOG_DATA = config.get("S3","LOG_DATA")
 LOG_PATH = config.get("S3", "LOG_JSONPATH")
 SONG_DATA = config.get("S3", "SONG_DATA")
 IAM_ROLE = config.get("IAM_ROLE","ARN")
-
 # DROP TABLES
 
 staging_events_table_drop = "DROP TABLE IF EXISTS staging_events"
@@ -123,26 +122,22 @@ weekday       INTEGER
 """)
 
 # STAGING TABLES
-
 staging_events_copy = ("""
-    COPY staging_events FROM {}
-    CREDENTIALS 'aws_iam_role={}'
-    COMPUPDATE OFF region 'us-west-2'
-    TIMEFORMAT as 'epochmillisecs'
-    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
-    FORMAT AS JSON {};
+   COPY staging_events FROM {}
+   CREDENTIALS 'aws_iam_role={}'
+   COMPUPDATE OFF region 'us-west-2'
+   TIMEFORMAT as 'epochmillisecs'
+   TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
+   FORMAT AS JSON {};
 """).format(LOG_DATA, IAM_ROLE, LOG_PATH)
 
 staging_songs_copy = ("""
     COPY staging_songs FROM {}
     CREDENTIALS 'aws_iam_role={}'
     COMPUPDATE OFF region 'us-west-2'
-    FORMAT AS JSON 'auto' 
-    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL;
-""").format(SONG_DATA, IAM_ROLE)
-
-
-
+    TIMEFORMAT as 'epochmillisecs'
+    TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
+    FORMAT AS JSON 'auto' ;""").format(SONG_DATA,IAM_ROLE)
 # FINAL TABLES
 
 songplay_table_insert = ("""
@@ -183,8 +178,7 @@ WHERE song_id IS NOT NULL;
 
 artist_table_insert = ("""
 INSERT INTO dim_artist(artist_id, name, location, latitude, longitude)
-SELECT DISTINCT artist_id as artist_id,
-                artist_name as name,
+SELECT DISTINCT artist_id as artist_id,artist_name as name,
                 artist_location as location,
                 artist_latitude as latitude,
                 artist_longitude as longitude
@@ -218,23 +212,23 @@ get_number_staging_songs = ("""
 """)
 
 get_number_songplays = ("""
-    SELECT COUNT(*) FROM songplays
+    SELECT COUNT(*) FROM fact_songplay
 """)
 
 get_number_users = ("""
-    SELECT COUNT(*) FROM users
+    SELECT COUNT(*) FROM dim_user
 """)
 
 get_number_songs = ("""
-    SELECT COUNT(*) FROM songs
+    SELECT COUNT(*) FROM dim_song
 """)
 
 get_number_artists = ("""
-    SELECT COUNT(*) FROM artists
+    SELECT COUNT(*) FROM dim_artist
 """)
 
 get_number_time = ("""
-    SELECT COUNT(*) FROM time
+    SELECT COUNT(*) FROM dim_time
 """)
 
 # QUERY LISTS
@@ -243,3 +237,4 @@ create_table_queries = [staging_events_table_create, staging_songs_table_create,
 drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
 copy_table_queries = [staging_events_copy, staging_songs_copy]
 insert_table_queries = [songplay_table_insert, user_table_insert, song_table_insert, artist_table_insert, time_table_insert]
+select_number_rows_queries= [get_number_staging_events, get_number_staging_songs, get_number_songplays, get_number_users, get_number_songs, get_number_artists, get_number_time]
