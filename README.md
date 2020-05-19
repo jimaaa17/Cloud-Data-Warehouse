@@ -62,12 +62,13 @@ The project template includes four files:
 2. Create a list of requirements for pythoon environment need for project infrastructure.
 3. Run the *create_cluster* script to setup AWS Redshift service.
 
-`$ python create_cluster.py`
+       `$ python create_cluster.py`
+
 4. Run the *create_tables* script to setup the staging schema and analytical tables.
- `$ python create_tables.py`
- 5. Run the *etl* scrip to extract data from file stored in S3, stage it at Redshift and store the data in dimensional tables.
- `$ python etl.py`
- 6. Run the *analytics* scrip to check the count of data into dimensional table or try using AWS Redshift to check count upon run queries for analytical table.
+        `$ python create_tables.py`
+5. Run the *etl* scrip to extract data from file stored in S3, stage it at Redshift and store the data in dimensional tables.
+            `$ python etl.py`
+6. Run the *analytics* scrip to check the count of data into dimensional table or try using AWS Redshift to check count upon run queries for analytical table.
 
   ## Queries and Results
 
