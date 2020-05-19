@@ -56,3 +56,29 @@ The project template includes four files:
 * etl.py is where I'll load data from S3 into staging tables on Redshift and then process that data into my analytics tables on Redshift.
 * sql_queries.py is where I'll define you SQL statements, which will be imported into the two other files above.
 * README.md is where I'll provide discussion on my process and decisions for this ETL pipeline.
+
+## Data Pipeline
+1. To run this project write down configuration, and save it as dwh.cfg in the project root folder.
+2. Create a list of requirements for pythoon environment need for project infrastructure.
+3. Run the *create_cluster* script to setup AWS Redshift service.
+
+`$ python create_cluster.py`
+4. Run the *create_tables* script to setup the staging schema and analytical tables.
+ `$ python create_tables.py`
+ 5. Run the *etl* scrip to extract data from file stored in S3, stage it at Redshift and store the data in dimensional tables.
+ `$ python etl.py`
+ 6. Run the *analytics* scrip to check the count of data into dimensional table or try using AWS Redshift to check count upon run queries for analytical table.
+
+  ## Queries and Results
+
+Number of rows in each table:
+
+| Table            | rows  |
+|---               | --:   |
+| staging_events   | 8056  |
+| staging_songs    | 71    |
+| dim_artist       | 69    |
+| fact_songplay    | 1     |
+| dim_song         | 14896 |
+| dim_time         |  8023 |
+| dim_user         |  105  |
