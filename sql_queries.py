@@ -4,14 +4,16 @@ import configparser
 # CONFIG
 config = configparser.ConfigParser()
 config.read('dwh.cfg')
-#Global Variables
-LOG_DATA = config.get("S3", "LOG_DATA")
-LOG_PATH = config.get("s3", "LOGJASONPATH")
+
+# GLOBAL VARIABLES
+LOG_DATA = config.get("S3","LOG_DATA")
+LOG_PATH = config.get("S3", "LOG_JSONPATH")
 SONG_DATA = config.get("S3", "SONG_DATA")
-IAM_ROLE = config.GET("IAM_ROLE", "ARN")
+IAM_ROLE = config.get("IAM_ROLE","ARN")
+
 # DROP TABLES
 
-staging_events_table_drop = "DROP TABE IF EXISTS staging_events"
+staging_events_table_drop = "DROP TABLE IF EXISTS staging_events"
 staging_songs_table_drop = "DROP TABLE IF EXISTS staging_songs"
 songplay_table_drop = "DROP TABLE IF EXISTS fact_songplay"
 user_table_drop = "DROP TABLE IF EXISTS dim_user"
@@ -21,64 +23,72 @@ time_table_drop = "DROP TABLE IF EXISTS dim_time"
 
 # CREATE TABLES
 
-staging_events_table_create= ("""CREATE TABLE IF NOT EXISTS staging_events_table_drop
-(artist VARCHAR,
-auth VARCHAR,
-firstName VARCHAR,
-gender VARCHAR,
-itemInSession INTEGER,
-lastName VARCHAR,
-length FLOAT,
-level VARCHAR,
-location VARCHAR,
-method VARCHAR,
-page VARCHAR,
-registration BIGINT,
-sessionId INTEGER,
-song VARCHAR,
-status INTEGER,
-ts TIMESTAMP,
-userAgent VARCHAR,
-useId INTEGER);
-""")
-
-staging_songs_table_create = ("""CREATE TABLE IF NOT EXISTS statging_songs(
-    song_id VARCHAR,
-    num_songs INTEGER,
-    title VARCHAR,
-    artist_name VARCHAR,
-    artist_latitude FLOAT,
-    year INTEGER,
-    duration FLOAT,
-    artist_id VARCHAR,
-    artist_longitude FLOAT,
-    artist_location VARCHAR
+staging_events_table_create= ("""
+CREATE TABLE IF NOT EXISTS staging_events
+(
+artist          VARCHAR,
+auth            VARCHAR, 
+firstName       VARCHAR,
+gender          VARCHAR,   
+itemInSession   INTEGER,
+lastName        VARCHAR,
+length          FLOAT,
+level           VARCHAR, 
+location        VARCHAR,
+method          VARCHAR,
+page            VARCHAR,
+registration    BIGINT,
+sessionId       INTEGER,
+song            VARCHAR,
+status          INTEGER,
+ts              TIMESTAMP,
+userAgent       VARCHAR,
+userId          INTEGER
 );
 """)
 
-songplay_table_create = ("""CREATE TABLE IF NOT EXISTS fact_songplay(
-    songplay_id INTEGER IDENTITY(0,1) PRIMARY KEY sortkey,
-    start_time TIMESTAMP,
-    user_id INTEGER,
-    level VARCHAR,
-    song_id VARCHAR,
-    artist_id  VARCHAR,
-    session_id INTEGER,
-    location VARCHAR,
-    user_agent VARCHAR);
+staging_songs_table_create = ("""
+CREATE TABLE IF NOT EXISTS staging_songs(
+song_id            VARCHAR,
+num_songs          INTEGER,
+title              VARCHAR,
+artist_name        VARCHAR,
+artist_latitude    FLOAT,
+year               INTEGER,
+duration           FLOAT,
+artist_id          VARCHAR,
+artist_longitude   FLOAT,
+artist_location    VARCHAR);
 """)
 
-user_table_create = ("""CREATE TABLE IF NOT EXISTS dim_user(
-    user_id INTEGER PRIMARY KEY distkey,
-    first_name VARCHAR,
-    last_name VARCHAR,
-    artist_id VARCHAR distkey,
-    year INTEGER,
-    duration FLOAT
+songplay_table_create = ("""
+CREATE TABLE IF NOT EXISTS fact_songplay
+(
+songplay_id          INTEGER IDENTITY(0,1) PRIMARY KEY sortkey,
+start_time           TIMESTAMP,
+user_id              INTEGER,
+level                VARCHAR,
+song_id              VARCHAR,
+artist_id            VARCHAR,
+session_id           INTEGER,
+location             VARCHAR,
+user_agent           VARCHAR
 );
 """)
 
-song_table_create = ("""CREATE TABLE IF NOT EXISTS dim_song
+user_table_create = ("""
+CREATE TABLE IF NOT EXISTS dim_user
+(
+user_id INTEGER PRIMARY KEY distkey,
+first_name      VARCHAR,
+last_name       VARCHAR,
+gender          VARCHAR,
+level           VARCHAR
+);
+""")
+
+song_table_create = ("""
+CREATE TABLE IF NOT EXISTS dim_song
 (
 song_id     VARCHAR PRIMARY KEY,
 title       VARCHAR,
@@ -88,7 +98,8 @@ duration    FLOAT
 );
 """)
 
-artist_table_create = ("""CREATE TABLE IF NOT EXISTS dim_artist
+artist_table_create = ("""
+CREATE TABLE IF NOT EXISTS dim_artist
 (
 artist_id          VARCHAR PRIMARY KEY distkey,
 name               VARCHAR,
@@ -98,7 +109,8 @@ longitude          FLOAT
 );
 """)
 
-time_table_create = ("""CREATE TABLE IF NOT EXISTS dim_time
+time_table_create = ("""
+CREATE TABLE IF NOT EXISTS dim_time
 (
 start_time    TIMESTAMP PRIMARY KEY sortkey distkey,
 hour          INTEGER,
@@ -112,7 +124,8 @@ weekday       INTEGER
 
 # STAGING TABLES
 
-staging_events_copy = ("""COPY staging_events FROM {}
+staging_events_copy = ("""
+    COPY staging_events FROM {}
     CREDENTIALS 'aws_iam_role={}'
     COMPUPDATE OFF region 'us-west-2'
     TIMEFORMAT as 'epochmillisecs'
@@ -120,14 +133,18 @@ staging_events_copy = ("""COPY staging_events FROM {}
     FORMAT AS JSON {};
 """).format(LOG_DATA, IAM_ROLE, LOG_PATH)
 
-staging_songs_copy = (""" COPY staging_songs FROM {}
+staging_songs_copy = ("""
+    COPY staging_songs FROM {}
     CREDENTIALS 'aws_iam_role={}'
     COMPUPDATE OFF region 'us-west-2'
     FORMAT AS JSON 'auto' 
     TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL;
 """).format(SONG_DATA, IAM_ROLE)
 
+
+
 # FINAL TABLES
+
 songplay_table_insert = ("""
 INSERT INTO fact_songplay(start_time, user_id, level, song_id, artist_id, session_id, location, user_agent)
 SELECT DISTINCT to_timestamp(to_char(se.ts, '9999-99-99 99:99:99'),'YYYY-MM-DD HH24:MI:SS'),
@@ -188,6 +205,37 @@ FROM staging_events
 WHERE ts IS NOT NULL;
 """)
 
+
+
+
+# GET NUMBER OF ROWS IN EACH TABLE
+get_number_staging_events = ("""
+    SELECT COUNT(*) FROM staging_events
+""")
+
+get_number_staging_songs = ("""
+    SELECT COUNT(*) FROM staging_songs
+""")
+
+get_number_songplays = ("""
+    SELECT COUNT(*) FROM songplays
+""")
+
+get_number_users = ("""
+    SELECT COUNT(*) FROM users
+""")
+
+get_number_songs = ("""
+    SELECT COUNT(*) FROM songs
+""")
+
+get_number_artists = ("""
+    SELECT COUNT(*) FROM artists
+""")
+
+get_number_time = ("""
+    SELECT COUNT(*) FROM time
+""")
 
 # QUERY LISTS
 
